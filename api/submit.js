@@ -23,9 +23,9 @@ export default async function handler(req, res) {
   }
   const i = (body && body.info) || {};
   const info = { parent: clean(i.parent), student: clean(i.student), std: clean(i.std) };
-  if (info.parent.length > 80) return res.status(400).json({ error: "invalid-parent" });
+  if (!info.parent || info.parent.length > 80) return res.status(400).json({ error: "invalid-parent" });
   if (info.student.length > 80) return res.status(400).json({ error: "invalid-student" });
-  if (!STDS.includes(info.std)) return res.status(400).json({ error: "invalid-std" });
+  if (info.std && !STDS.includes(info.std)) return res.status(400).json({ error: "invalid-std" });
   const at = typeof body.at === "string" && !isNaN(Date.parse(body.at)) ? body.at : new Date().toISOString();
   const record = { id, at, receivedAt: new Date().toISOString(), info, answers };
 

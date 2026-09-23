@@ -212,12 +212,13 @@ async function ensurePdfLibs(){
 }
 function buildReportRoot(n){
   const root=document.createElement("div");
-  root.style.cssText="position:fixed;left:-10000px;top:0;"+REPORT_VARS+"font-family:'Hind Vadodara','Noto Sans Gujarati',sans-serif;";
+  root.style.cssText="position:fixed;left:-10000px;top:0;"+REPORT_VARS+"font-family:'Hind Vadodara','Noto Sans Gujarati',sans-serif;color:#1f1a36;background:#f3f0f8;";
   document.body.appendChild(root);
 
   const cover=document.createElement("div");
   cover.className="pdf-block inner";
   cover.style.width="700px";
+  cover.style.background="#ffffff";
   cover.appendChild(document.querySelector("header.sky").cloneNode(true));
   const waveClone=document.querySelector("svg.wave").cloneNode(true);
   const wavePath=waveClone.querySelector("path");

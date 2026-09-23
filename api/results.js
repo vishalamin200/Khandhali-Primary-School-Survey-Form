@@ -6,6 +6,16 @@ export default async function handler(req, res) {
   if (!process.env.RESULTS_PASSWORD) return res.status(503).json({ error: "password-not-configured" });
   if (!loggedIn(req)) return res.status(401).json({ error: "unauthorized" });
   if (!redis) return res.status(503).json({ error: "storage-not-configured" });
+
+  if (req.method === "DELETE") {
+    try {
+      await redis.del(KEY);
+      return res.status(200).json({ ok: true });
+    } catch (e) {
+      return res.status(503).json({ error: "storage-unavailable" });
+    }
+  }
+
   try {
     const all = (await redis.hgetall(KEY)) || {};
     const responses = Object.values(all).map((v) => (typeof v === "string" ? JSON.parse(v) : v));

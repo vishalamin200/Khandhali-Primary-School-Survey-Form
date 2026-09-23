@@ -82,16 +82,36 @@ th,td{padding:.55rem .7rem;text-align:left;border-bottom:1px solid var(--line);w
 th{background:color-mix(in srgb,var(--gold) 10%,var(--paper));font-weight:600}
 h2{font-family:"Rasa",serif;margin:2rem 0 0;color:var(--accent)}
 .empty{text-align:center;color:var(--mute);padding:2rem 0}
+.tools button.danger{border-color:var(--bad);color:var(--bad)}
+.tools button.danger:hover{background:var(--bad);color:#fff}
+.tools button:disabled{opacity:.5;cursor:default}
+.tools button:disabled:hover{background:var(--paper);color:var(--accent)}
+.tools button.danger:disabled:hover{background:var(--paper);color:var(--bad)}
+.ov{position:fixed;inset:0;background:rgba(18,14,32,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:1.2rem;z-index:80}
+.mcard{width:100%;max-width:23rem;background:var(--paper);border:2px solid var(--bad);border-radius:12px;padding:1.6rem 1.5rem;box-shadow:0 20px 44px rgba(31,26,54,.35);text-align:center}
+.mico{width:52px;height:52px;margin:0 auto .8rem;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.mcard h3{font-family:"Rasa",serif;margin:0 0 .5rem;font-size:1.3rem;color:var(--bad)}
+.mcard p{margin:0;color:var(--mute)}
+.mcard .mcount{font-weight:700;color:var(--ink)}
+.macts{display:flex;gap:.7rem;justify-content:center;margin-top:1.4rem;flex-wrap:wrap}
+.macts button{border-radius:999px;padding:.65rem 1.4rem;font-weight:700;font-size:.98rem}
+.mcancel{border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+.mdel{border:0;color:#fff;background:linear-gradient(90deg,var(--bad),var(--k2));box-shadow:0 6px 16px rgba(196,38,62,.35)}
+.mdel:disabled{opacity:.65;cursor:default}
+.toast{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.7rem 1.2rem;border-radius:999px;font-size:.92rem;font-weight:600;box-shadow:0 10px 26px rgba(0,0,0,.3);z-index:90}
 </style></head><body><main class="sheet"><div class="inner"><header class="sky"><svg class="seal" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.15)" stroke="#ffd98a" stroke-width="2"/><circle cx="32" cy="32" r="24" fill="none" stroke="#ffd98a" stroke-width="1" stroke-dasharray="2 3"/><path d="M16 40c5-2 11-2 16 1 5-3 11-3 16-1V22c-5-2-11-2-16 1-5-3-11-3-16-1z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M32 23v18" stroke="#fff" stroke-width="2"/></svg><h1>શ્રી જ્ઞાન સ્વામી પ્રાથમિક શાળા ખાંધલી</h1><p class="code">શાળા કોડ: <b>૨૪૧૫૦૧૦૨૧૦૧</b></p></header><svg class="wave" viewBox="0 0 700 28" preserveAspectRatio="none" aria-hidden="true"><path d="M0 28V14C120 0 230 26 350 14S580 0 700 14V28Z" fill="var(--paper)"/></svg>
 <div class="body"><p class="sub">સર્વેક્ષણનું પરિણામ</p>
 <form id="login" class="login" novalidate hidden><label for="pw">પરિણામ જોવા માટે પાસવર્ડ લખો</label><span class="progt" style="display:block;margin-top:.2rem">એક વાર પ્રવેશ કર્યા પછી આ ઉપકરણ પર ૧૦ દિવસ સુધી ફરી પાસવર્ડ નહીં પૂછાય.</span><input id="pw" type="password" autocomplete="current-password"><p id="lerr" class="note" role="alert" hidden></p><button class="send" id="lbtn">પરિણામ જુઓ</button></form>
 <section id="res" hidden>
-<div class="stats"><p class="tot" id="tot"></p><div class="tools"><button type="button" id="refresh">તાજું કરો</button><button type="button" id="csv">બધા જવાબો ફાઇલમાં ડાઉનલોડ કરો</button><button type="button" id="logout">બહાર નીકળો</button></div></div>
+<div class="stats"><p class="tot" id="tot"></p><div class="tools"><button type="button" id="refresh">તાજું કરો</button><button type="button" id="pdf">PDF ડાઉનલોડ કરો</button><button type="button" id="delAllBtn" class="danger">તમામ જવાબો કાઢી નાખો</button><button type="button" id="logout">બહાર નીકળો</button></div></div>
 <p class="progt" id="upd"></p>
 <div id="charts"></div>
 <h2>બધા જવાબો</h2>
 <div class="tw"><table><thead><tr><th>ક્રમ</th><th>તારીખ અને સમય</th><th>વાલીનું નામ</th><th>વિદ્યાર્થીનું નામ</th><th>ધોરણ</th><th>પ્રશ્ન ૧</th><th>પ્રશ્ન ૨</th><th>પ્રશ્ન ૩</th><th>પ્રશ્ન ૪</th><th>પ્રશ્ન ૫</th></tr></thead><tbody id="rows"></tbody></table></div>
-</section></div></div></main><script>
+</section></div></div>
+<div class="ov" id="delOv" hidden role="dialog" aria-modal="true" aria-labelledby="delTitle"><div class="mcard"><div class="mico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></div><h3 id="delTitle">શું તમે ખરેખર કાઢી નાખવા માંગો છો?</h3><p>કુલ <span class="mcount" id="delCount"></span> જવાબો કાયમ માટે ડિલીટ થઈ જશે. આ ક્રિયા પાછી લઈ શકાશે નહીં.</p><div class="macts"><button type="button" class="mcancel" id="delCancel">રદ કરો</button><button type="button" class="mdel" id="delConfirm">હા, બધું કાઢી નાખો</button></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</main><script>
 (function(){
 const Q=[["q1", "શું તમે શાળાની મુલાકાત લીધી?", ["હા", "ના"]], ["q2", "શાળાનું મકાન અને સ્વચ્છતા કેવી લાગી?", ["સારી", "મધ્યમ", "સુધારાત્મક"]], ["q3", "શાળાનું મેદાન કેવું લાગ્યું?", ["સારું", "મધ્યમ", "સુધારાત્મક"]], ["q4", "પીવાના પાણીની સુવિધા કેવી છે?", ["સારી", "મધ્યમ", "સુધારાત્મક"]], ["q5", "શું વર્ગખંડમાં સ્માર્ટ ટીવી પર શૈક્ષણિક કાર્ય કરવામાં આવે છે?", ["હા", "ના"]]];
 const gd=n=>String(n).replace(/\d/g,d=>"૦૧૨૩૪૫૬૭૮૯"[d]);
@@ -113,6 +133,7 @@ async function load(){
 function err(t){$("lerr").textContent=t;$("lerr").hidden=false;$("login").hidden=false;}
 function render(){
   const n=data.length;$("tot").textContent="કુલ જવાબ: "+gd(n);
+  $("delAllBtn").disabled=n===0;
   $("upd").textContent="છેલ્લે તાજું કર્યું: "+fmt(new Date().toISOString());
   if(!n){$("charts").innerHTML='<p class="empty">હજુ સુધી કોઈ જવાબ મળ્યો નથી.</p>';$("rows").innerHTML="";return;}
   $("charts").innerHTML=Q.map((q,i)=>'<div class="card"><p class="ct"><span class="qn">'+gd(i+1)+'</span><span>'+esc(q[1])+'</span></p>'+
@@ -129,13 +150,220 @@ $("login").addEventListener("submit",async e=>{e.preventDefault();const pw=$("pw
   $("lbtn").disabled=false;load();});
 $("logout").addEventListener("click",async()=>{try{await fetch("/api/logout",{method:"POST",credentials:"same-origin"});}catch(x){}data=[];$("res").hidden=true;$("login").hidden=false;tried=false;$("lerr").hidden=true;});
 $("refresh").addEventListener("click",load);
-$("csv").addEventListener("click",()=>{
-  const cell=v=>'"'+String(v).replace(/"/g,'""')+'"';
-  const lines=[["ક્રમ","તારીખ અને સમય","વાલીનું નામ","વિદ્યાર્થીનું નામ","ધોરણ"].concat(Q.map(q=>q[1])).map(cell).join(",")];
-  data.slice().reverse().forEach((d,i)=>lines.push([i+1,fmt(d.at),(d.info||{}).parent||"",(d.info||{}).student||"",(d.info||{}).std||""].concat(Q.map(q=>(d.answers||{})[q[0]]||"")).map(cell).join(",")));
-  const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="school-survey-responses.csv";document.body.appendChild(a);a.click();a.remove();
+/* ---------- ટોસ્ટ સંદેશ ---------- */
+let toastT=null;
+function showToast(msg){
+  const t=$("toast");t.textContent=msg;t.hidden=false;
+  clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},3200);
+}
+
+/* ---------- તમામ જવાબો કાઢી નાખો ---------- */
+function closeDelModal(){
+  $("delOv").hidden=true;
+  $("delConfirm").disabled=false;$("delConfirm").textContent="હા, બધું કાઢી નાખો";
+  $("delAllBtn").focus();
+}
+$("delAllBtn").addEventListener("click",()=>{
+  if(!data.length)return;
+  $("delCount").textContent=gd(data.length);
+  $("delOv").hidden=false;
+  $("delConfirm").focus();
 });
+$("delCancel").addEventListener("click",closeDelModal);
+$("delOv").addEventListener("click",e=>{if(e.target.id==="delOv")closeDelModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("delOv").hidden)closeDelModal();});
+$("delConfirm").addEventListener("click",async()=>{
+  $("delConfirm").disabled=true;$("delConfirm").textContent="કાઢી રહ્યા છીએ...";
+  try{
+    const r=await fetch("/api/results",{method:"DELETE",credentials:"same-origin"});
+    if(r.status===401){$("delOv").hidden=true;data=[];$("res").hidden=true;$("login").hidden=false;return;}
+    if(!r.ok)throw new Error("fail");
+    $("delOv").hidden=true;
+    data=[];render();
+    $("upd").textContent="છેલ્લે તાજું કર્યું: "+fmt(new Date().toISOString());
+    showToast("બધા જવાબો સફળતાપૂર્વક કાઢી નાખવામાં આવ્યા.");
+  }catch(e){
+    $("delConfirm").disabled=false;$("delConfirm").textContent="હા, બધું કાઢી નાખો";
+    showToast("કાઢી શકાયું નથી. ફરી પ્રયાસ કરો.");
+  }
+});
+
+/* ---------- PDF નિકાસ ---------- */
+const COLORS={bg:"#f3f0f8",paper:"#ffffff",ink:"#1f1a36",mute:"#5a5474",accent:"#6a3fd1",gold:"#b8872b",k1:"#ff8a00",k2:"#e2336b",k3:"#12a5a0",k4:"#6a3fd1",line:"#e3deee",track:"#e6e1f0",row:"#f7f5fc"};
+const hx=h=>{h=h.replace("#","");const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];};
+const RGB={};Object.keys(COLORS).forEach(k=>RGB[k]=hx(COLORS[k]));
+let scriptsReady=null,fontCache=null;
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    if(document.querySelector('script[src="'+src+'"]'))return resolve();
+    const s=document.createElement("script");s.src=src;s.onload=()=>resolve();s.onerror=()=>reject(new Error("load-fail"));
+    document.head.appendChild(s);
+  });
+}
+function abToB64(buf){
+  const bytes=new Uint8Array(buf);let bin="";const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  return btoa(bin);
+}
+async function ensurePdfLibs(){
+  if(!scriptsReady){
+    scriptsReady=(async()=>{
+      await loadScript("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js");
+    })();
+  }
+  await scriptsReady;
+}
+async function ensureFont(doc){
+  if(!fontCache){
+    const base="https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/hindvadodara/";
+    const regP=fetch(base+"HindVadodara-Regular.ttf").then(r=>{if(!r.ok)throw new Error("font");return r.arrayBuffer();});
+    const boldP=fetch(base+"HindVadodara-SemiBold.ttf").then(r=>{if(!r.ok)throw new Error("font");return r.arrayBuffer();});
+    const reg=await regP,bold=await boldP;
+    fontCache={reg:abToB64(reg),bold:abToB64(bold)};
+  }
+  doc.addFileToVFS("Hind-R.ttf",fontCache.reg);doc.addFont("Hind-R.ttf","Hind","normal");
+  doc.addFileToVFS("Hind-B.ttf",fontCache.bold);doc.addFont("Hind-B.ttf","Hind","bold");
+  doc.setFont("Hind","normal");
+}
+function interpColor(stops,t){
+  for(let i=0;i<stops.length-1;i++){
+    const p0=stops[i][0],c0=stops[i][1],p1=stops[i+1][0],c1=stops[i+1][1];
+    if(t>=p0&&t<=p1){const f=(t-p0)/((p1-p0)||1);return[0,1,2].map(k=>Math.round(c0[k]+(c1[k]-c0[k])*f));}
+  }
+  return stops[stops.length-1][1];
+}
+function drawGradient(doc,x,y,w,h,stops){
+  const bands=Math.max(50,Math.round(w/3));const bw=w/bands;
+  for(let i=0;i<bands;i++){
+    const c=interpColor(stops,i/(bands-1));
+    doc.setFillColor(c[0],c[1],c[2]);doc.rect(x+i*bw,y,bw+0.7,h,"F");
+  }
+}
+function drawContinuationHeader(doc,PW,M){
+  doc.setFillColor(RGB.accent[0],RGB.accent[1],RGB.accent[2]);doc.rect(0,0,PW,32,"F");
+  doc.setTextColor(255,255,255);doc.setFont("Hind","bold");doc.setFontSize(10.5);
+  doc.text("સર્વેક્ષણનું પરિણામ – અહેવાલ",M,21);
+  return 54;
+}
+function addFooters(doc,PW,PH,M){
+  const pages=doc.internal.getNumberOfPages();
+  for(let p=1;p<=pages;p++){
+    doc.setPage(p);
+    doc.setDrawColor(RGB.gold[0],RGB.gold[1],RGB.gold[2]);doc.setLineWidth(0.8);doc.line(M,PH-34,PW-M,PH-34);
+    doc.setFont("Hind","normal");doc.setFontSize(8.3);doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);
+    doc.text("શ્રી જ્ઞાન સ્વામી પ્રાથમિક શાળા ખાંધલી — સર્વેક્ષણ અહેવાલ",M,PH-22);
+    doc.text("પાનું "+gd(p)+" / "+gd(pages),PW-M,PH-22,{align:"right"});
+  }
+}
+function buildPdf(doc,n){
+  const PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight(),M=42;
+  drawGradient(doc,0,0,PW,116,[[0,RGB.k1],[0.55,RGB.k2],[1,RGB.k4]]);
+  doc.setTextColor(255,255,255);
+  doc.setFont("Hind","bold");doc.setFontSize(18);
+  doc.text("શ્રી જ્ઞાન સ્વામી પ્રાથમિક શાળા ખાંધલી",PW/2,40,{align:"center"});
+  doc.setFont("Hind","normal");doc.setFontSize(10);
+  doc.text("શાળા કોડ: ૨૪૧૫૦૧૦૨૧૦૧",PW/2,58,{align:"center"});
+  doc.setFont("Hind","bold");doc.setFontSize(14.5);
+  doc.text("સર્વેક્ષણનું પરિણામ – અહેવાલ",PW/2,86,{align:"center"});
+
+  let y=140;
+  const cardW=(PW-2*M-16)/2,cardH=52;
+  const cards=[["કુલ જવાબ",gd(n)],["અહેવાલ બનાવ્યાની તારીખ",fmt(new Date().toISOString())]];
+  cards.forEach((c,i)=>{
+    const x=M+i*(cardW+16);
+    doc.setFillColor(RGB.row[0],RGB.row[1],RGB.row[2]);doc.setDrawColor(RGB.line[0],RGB.line[1],RGB.line[2]);doc.setLineWidth(0.7);
+    doc.roundedRect(x,y,cardW,cardH,7,7,"FD");
+    const barc=i===0?RGB.accent:RGB.gold;
+    doc.setFillColor(barc[0],barc[1],barc[2]);
+    doc.roundedRect(x,y,4.5,cardH,2,2,"F");
+    doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);doc.setFont("Hind","normal");doc.setFontSize(9);
+    doc.text(c[0],x+14,y+19);
+    doc.setTextColor(RGB.ink[0],RGB.ink[1],RGB.ink[2]);doc.setFont("Hind","bold");doc.setFontSize(14.5);
+    doc.text(String(c[1]),x+14,y+39);
+  });
+  y+=cardH+30;
+
+  if(!n){
+    doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);doc.setFont("Hind","normal");doc.setFontSize(11.5);
+    doc.text("હજુ સુધી કોઈ જવાબ મળ્યો નથી.",PW/2,y+20,{align:"center"});
+    addFooters(doc,PW,PH,M);
+    return;
+  }
+
+  doc.setTextColor(RGB.accent[0],RGB.accent[1],RGB.accent[2]);doc.setFont("Hind","bold");doc.setFontSize(13);
+  doc.text("પ્રશ્નવાર વિશ્લેષણ",M,y);
+  y+=18;
+
+  const KEYS=["k1","k2","k3","k4"];
+  Q.forEach((q,qi)=>{
+    const key=q[0],text=q[1],opts=q[2];
+    const color=RGB[KEYS[qi%4]];
+    const qLines=doc.splitTextToSize(text,PW-2*M-38);
+    const needed=Math.max(24,qLines.length*14)+opts.length*20+16;
+    if(y+needed>PH-64){doc.addPage();y=drawContinuationHeader(doc,PW,M);}
+    doc.setFillColor(color[0],color[1],color[2]);doc.circle(M+9,y+6,9,"F");
+    doc.setTextColor(255,255,255);doc.setFont("Hind","bold");doc.setFontSize(9.5);
+    doc.text(gd(qi+1),M+9,y+9,{align:"center"});
+    doc.setTextColor(RGB.ink[0],RGB.ink[1],RGB.ink[2]);doc.setFont("Hind","bold");doc.setFontSize(11);
+    doc.text(qLines,M+26,y+3);
+    y+=Math.max(qLines.length*13,12)+10;
+    opts.forEach(o=>{
+      const c=data.filter(d=>d.answers&&d.answers[key]===o).length;
+      const pct=n?Math.round(c/n*100):0;
+      doc.setFont("Hind","normal");doc.setFontSize(9.3);doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);
+      doc.text(o,M+26,y+6);
+      const barX=M+150,barW=PW-2*M-150-64,barH=8;
+      doc.setFillColor(RGB.track[0],RGB.track[1],RGB.track[2]);doc.roundedRect(barX,y,barW,barH,3,3,"F");
+      if(pct>0){doc.setFillColor(color[0],color[1],color[2]);doc.roundedRect(barX,y,Math.max(barW*pct/100,4),barH,3,3,"F");}
+      doc.setTextColor(RGB.ink[0],RGB.ink[1],RGB.ink[2]);doc.setFont("Hind","bold");doc.setFontSize(9);
+      doc.text(gd(c)+" ("+gd(pct)+"%)",barX+barW+8,y+6.5);
+      y+=19;
+    });
+    doc.setDrawColor(RGB.line[0],RGB.line[1],RGB.line[2]);doc.setLineWidth(0.6);doc.line(M,y+1,PW-M,y+1);
+    y+=15;
+  });
+
+  if(y+40>PH-64){doc.addPage();y=drawContinuationHeader(doc,PW,M);}
+  doc.setTextColor(RGB.accent[0],RGB.accent[1],RGB.accent[2]);doc.setFont("Hind","bold");doc.setFontSize(13);
+  doc.text("બધા જવાબોની વિગતો",M,y);
+  y+=16;
+
+  doc.autoTable({
+    startY:y,
+    margin:{left:M,right:M,bottom:56},
+    styles:{font:"Hind",fontSize:8.3,cellPadding:5,lineColor:RGB.line,lineWidth:0.5,textColor:RGB.ink,valign:"middle"},
+    headStyles:{fillColor:RGB.accent,textColor:[255,255,255],font:"Hind",fontStyle:"bold",fontSize:8.3},
+    alternateRowStyles:{fillColor:RGB.row},
+    theme:"grid",
+    head:[["ક્રમ","તારીખ અને સમય","વાલીનું નામ","વિદ્યાર્થીનું નામ","ધોરણ","પ્ર.૧","પ્ર.૨","પ્ર.૩","પ્ર.૪","પ્ર.૫"]],
+    body:data.map((d,i)=>{
+      const info=d.info||{};
+      const row=[gd(n-i),fmt(d.at),info.parent||"",info.student||"",info.std||""];
+      Q.forEach(qq=>row.push((d.answers||{})[qq[0]]||""));
+      return row;
+    }),
+  });
+
+  addFooters(doc,PW,PH,M);
+}
+$("pdf").addEventListener("click",async()=>{
+  const btn=$("pdf"),old=btn.textContent;
+  btn.disabled=true;btn.textContent="તૈયાર થાય છે...";
+  try{
+    await ensurePdfLibs();
+    const jsPDF=window.jspdf.jsPDF;
+    const doc=new jsPDF({unit:"pt",format:"a4"});
+    await ensureFont(doc);
+    buildPdf(doc,data.length);
+    doc.save("school-survey-report.pdf");
+  }catch(e){
+    showToast("PDF બનાવવામાં ભૂલ આવી. ઇન્ટરનેટ તપાસીને ફરી પ્રયાસ કરો.");
+  }finally{
+    btn.disabled=false;btn.textContent=old;
+  }
+});
+
 load();
 })();
 </script></body></html>

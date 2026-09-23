@@ -189,10 +189,11 @@ $("delConfirm").addEventListener("click",async()=>{
 });
 
 /* ---------- PDF નિકાસ ---------- */
-const COLORS={bg:"#f3f0f8",paper:"#ffffff",ink:"#1f1a36",mute:"#5a5474",accent:"#6a3fd1",gold:"#b8872b",k1:"#ff8a00",k2:"#e2336b",k3:"#12a5a0",k4:"#6a3fd1",line:"#e3deee",track:"#e6e1f0",row:"#f7f5fc"};
+const COLORS={mute:"#5a5474",gold:"#b8872b"};
 const hx=h=>{h=h.replace("#","");const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];};
 const RGB={};Object.keys(COLORS).forEach(k=>RGB[k]=hx(COLORS[k]));
-let scriptsReady=null,fontCache=null;
+const REPORT_VARS="--bg:#f3f0f8;--paper:#ffffff;--ink:#1f1a36;--mute:#5a5474;--accent:#6a3fd1;--gold:#b8872b;--k1:#ff8a00;--k2:#e2336b;--k3:#12a5a0;--k4:#6a3fd1;--line:#e3deee;--track:#e6e1f0;--bad:#c4263e;";
+let scriptsReady=null;
 function loadScript(src){
   return new Promise((resolve,reject)=>{
     if(document.querySelector('script[src="'+src+'"]'))return resolve();
@@ -200,166 +201,138 @@ function loadScript(src){
     document.head.appendChild(s);
   });
 }
-function abToB64(buf){
-  const bytes=new Uint8Array(buf);let bin="";const chunk=0x8000;
-  for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
-  return btoa(bin);
-}
 async function ensurePdfLibs(){
   if(!scriptsReady){
     scriptsReady=(async()=>{
       await loadScript("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js");
-      await loadScript("https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js");
     })();
   }
   await scriptsReady;
 }
-async function ensureFont(doc){
-  if(!fontCache){
-    const base="https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/hindvadodara/";
-    const regP=fetch(base+"HindVadodara-Regular.ttf").then(r=>{if(!r.ok)throw new Error("font");return r.arrayBuffer();});
-    const boldP=fetch(base+"HindVadodara-SemiBold.ttf").then(r=>{if(!r.ok)throw new Error("font");return r.arrayBuffer();});
-    const reg=await regP,bold=await boldP;
-    fontCache={reg:abToB64(reg),bold:abToB64(bold)};
+function buildReportRoot(n){
+  const root=document.createElement("div");
+  root.style.cssText="position:fixed;left:-10000px;top:0;"+REPORT_VARS+"font-family:'Hind Vadodara','Noto Sans Gujarati',sans-serif;";
+  document.body.appendChild(root);
+
+  const cover=document.createElement("div");
+  cover.className="pdf-block inner";
+  cover.style.width="700px";
+  cover.appendChild(document.querySelector("header.sky").cloneNode(true));
+  cover.appendChild(document.querySelector("svg.wave").cloneNode(true));
+  const body=document.createElement("div");
+  body.className="body";
+  const sub=document.querySelector(".sub").cloneNode(true);
+  const meta=document.createElement("p");
+  meta.className="progt";
+  meta.style.textAlign="center";
+  meta.textContent=$("upd").textContent;
+  const stats=document.createElement("div");
+  stats.className="stats";
+  stats.style.justifyContent="center";
+  stats.style.marginTop="1rem";
+  const tot=document.createElement("p");
+  tot.className="tot";
+  tot.textContent=$("tot").textContent;
+  stats.appendChild(tot);
+  body.appendChild(sub);body.appendChild(meta);body.appendChild(stats);
+  cover.appendChild(body);
+  root.appendChild(cover);
+
+  if(n){
+    const chartsWrap=document.createElement("div");
+    chartsWrap.className="pdf-block";
+    chartsWrap.style.cssText="width:700px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:1rem 1.4rem;";
+    chartsWrap.appendChild($("charts").cloneNode(true));
+    root.appendChild(chartsWrap);
+
+    const theadHTML=document.querySelector(".tw table thead").outerHTML;
+    const tableHeading=document.querySelector(".body h2").textContent;
+    const allRows=Array.from(document.querySelectorAll("#rows tr"));
+    const CHUNK=14;
+    for(let i=0;i<allRows.length;i+=CHUNK){
+      const wrap=document.createElement("div");
+      wrap.className="pdf-block";
+      wrap.style.cssText="width:1000px;background:var(--paper);padding:.2rem 0;";
+      if(i===0){
+        const h2t=document.createElement("h2");
+        h2t.style.margin="0 0 .6rem";
+        h2t.textContent=tableHeading;
+        wrap.appendChild(h2t);
+      }
+      const twDiv=document.createElement("div");
+      twDiv.className="tw";
+      twDiv.style.cssText="overflow:visible;margin-top:0;border:1px solid var(--line);border-radius:8px;";
+      const tbl=document.createElement("table");
+      tbl.style.cssText="min-width:0;border-collapse:collapse;width:100%;font-size:.85rem;";
+      tbl.innerHTML=theadHTML+"<tbody>"+allRows.slice(i,i+CHUNK).map(r=>r.outerHTML).join("")+"</tbody>";
+      twDiv.appendChild(tbl);
+      wrap.appendChild(twDiv);
+      root.appendChild(wrap);
+    }
+  } else {
+    const emptyWrap=document.createElement("div");
+    emptyWrap.className="pdf-block";
+    emptyWrap.style.cssText="width:700px;background:var(--paper);padding:1rem;text-align:center;";
+    emptyWrap.appendChild(document.querySelector(".empty").cloneNode(true));
+    root.appendChild(emptyWrap);
   }
-  doc.addFileToVFS("Hind-R.ttf",fontCache.reg);doc.addFont("Hind-R.ttf","Hind","normal");
-  doc.addFileToVFS("Hind-B.ttf",fontCache.bold);doc.addFont("Hind-B.ttf","Hind","bold");
-  doc.setFont("Hind","normal");
+  return root;
 }
-function interpColor(stops,t){
-  for(let i=0;i<stops.length-1;i++){
-    const p0=stops[i][0],c0=stops[i][1],p1=stops[i+1][0],c1=stops[i+1][1];
-    if(t>=p0&&t<=p1){const f=(t-p0)/((p1-p0)||1);return[0,1,2].map(k=>Math.round(c0[k]+(c1[k]-c0[k])*f));}
+function addCanvasToPdf(doc,canvas,state){
+  const imgW=state.PW-2*state.M;
+  const imgH=canvas.height*imgW/canvas.width;
+  if(state.y+imgH>state.PH-state.M&&state.y>state.M+1){
+    doc.addPage();
+    state.y=state.M;
   }
-  return stops[stops.length-1][1];
+  doc.addImage(canvas.toDataURL("image/png"),"PNG",state.M,state.y,imgW,imgH);
+  state.y+=imgH+14;
 }
-function drawGradient(doc,x,y,w,h,stops){
-  const bands=Math.max(50,Math.round(w/3));const bw=w/bands;
-  for(let i=0;i<bands;i++){
-    const c=interpColor(stops,i/(bands-1));
-    doc.setFillColor(c[0],c[1],c[2]);doc.rect(x+i*bw,y,bw+0.7,h,"F");
-  }
-}
-function drawContinuationHeader(doc,PW,M){
-  doc.setFillColor(RGB.accent[0],RGB.accent[1],RGB.accent[2]);doc.rect(0,0,PW,32,"F");
-  doc.setTextColor(255,255,255);doc.setFont("Hind","bold");doc.setFontSize(10.5);
-  doc.text("સર્વેક્ષણનું પરિણામ – અહેવાલ",M,21);
-  return 54;
-}
-function addFooters(doc,PW,PH,M){
+async function addFooters(doc,state,root){
+  const footEl=document.createElement("div");
+  footEl.className="pdf-block";
+  footEl.style.cssText="width:640px;padding:0;color:var(--mute);font-size:.8rem;font-family:'Hind Vadodara','Noto Sans Gujarati',sans-serif;";
+  footEl.textContent=document.querySelector("title").textContent;
+  root.appendChild(footEl);
+  const canvas=await window.html2canvas(footEl,{scale:2,backgroundColor:null,useCORS:true});
+  const imgW=220;
+  const imgH=canvas.height*imgW/canvas.width;
   const pages=doc.internal.getNumberOfPages();
   for(let p=1;p<=pages;p++){
     doc.setPage(p);
-    doc.setDrawColor(RGB.gold[0],RGB.gold[1],RGB.gold[2]);doc.setLineWidth(0.8);doc.line(M,PH-34,PW-M,PH-34);
-    doc.setFont("Hind","normal");doc.setFontSize(8.3);doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);
-    doc.text("શ્રી જ્ઞાન સ્વામી પ્રાથમિક શાળા ખાંધલી — સર્વેક્ષણ અહેવાલ",M,PH-22);
-    doc.text("પાનું "+gd(p)+" / "+gd(pages),PW-M,PH-22,{align:"right"});
+    doc.setDrawColor(RGB.gold[0],RGB.gold[1],RGB.gold[2]);doc.setLineWidth(0.8);
+    doc.line(state.M,state.PH-30,state.PW-state.M,state.PH-30);
+    doc.addImage(canvas.toDataURL("image/png"),"PNG",state.M,state.PH-24,imgW,imgH);
+    doc.setFont("helvetica","normal");doc.setFontSize(8.5);
+    doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);
+    doc.text(p+" / "+pages,state.PW-state.M,state.PH-16,{align:"right"});
   }
-}
-function buildPdf(doc,n){
-  const PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight(),M=42;
-  drawGradient(doc,0,0,PW,116,[[0,RGB.k1],[0.55,RGB.k2],[1,RGB.k4]]);
-  doc.setTextColor(255,255,255);
-  doc.setFont("Hind","bold");doc.setFontSize(18);
-  doc.text("શ્રી જ્ઞાન સ્વામી પ્રાથમિક શાળા ખાંધલી",PW/2,40,{align:"center"});
-  doc.setFont("Hind","normal");doc.setFontSize(10);
-  doc.text("શાળા કોડ: ૨૪૧૫૦૧૦૨૧૦૧",PW/2,58,{align:"center"});
-  doc.setFont("Hind","bold");doc.setFontSize(14.5);
-  doc.text("સર્વેક્ષણનું પરિણામ – અહેવાલ",PW/2,86,{align:"center"});
-
-  let y=140;
-  const cardW=(PW-2*M-16)/2,cardH=52;
-  const cards=[["કુલ જવાબ",gd(n)],["અહેવાલ બનાવ્યાની તારીખ",fmt(new Date().toISOString())]];
-  cards.forEach((c,i)=>{
-    const x=M+i*(cardW+16);
-    doc.setFillColor(RGB.row[0],RGB.row[1],RGB.row[2]);doc.setDrawColor(RGB.line[0],RGB.line[1],RGB.line[2]);doc.setLineWidth(0.7);
-    doc.roundedRect(x,y,cardW,cardH,7,7,"FD");
-    const barc=i===0?RGB.accent:RGB.gold;
-    doc.setFillColor(barc[0],barc[1],barc[2]);
-    doc.roundedRect(x,y,4.5,cardH,2,2,"F");
-    doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);doc.setFont("Hind","normal");doc.setFontSize(9);
-    doc.text(c[0],x+14,y+19);
-    doc.setTextColor(RGB.ink[0],RGB.ink[1],RGB.ink[2]);doc.setFont("Hind","bold");doc.setFontSize(14.5);
-    doc.text(String(c[1]),x+14,y+39);
-  });
-  y+=cardH+30;
-
-  if(!n){
-    doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);doc.setFont("Hind","normal");doc.setFontSize(11.5);
-    doc.text("હજુ સુધી કોઈ જવાબ મળ્યો નથી.",PW/2,y+20,{align:"center"});
-    addFooters(doc,PW,PH,M);
-    return;
-  }
-
-  doc.setTextColor(RGB.accent[0],RGB.accent[1],RGB.accent[2]);doc.setFont("Hind","bold");doc.setFontSize(13);
-  doc.text("પ્રશ્નવાર વિશ્લેષણ",M,y);
-  y+=18;
-
-  const KEYS=["k1","k2","k3","k4"];
-  Q.forEach((q,qi)=>{
-    const key=q[0],text=q[1],opts=q[2];
-    const color=RGB[KEYS[qi%4]];
-    const qLines=doc.splitTextToSize(text,PW-2*M-38);
-    const needed=Math.max(24,qLines.length*14)+opts.length*20+16;
-    if(y+needed>PH-64){doc.addPage();y=drawContinuationHeader(doc,PW,M);}
-    doc.setFillColor(color[0],color[1],color[2]);doc.circle(M+9,y+6,9,"F");
-    doc.setTextColor(255,255,255);doc.setFont("Hind","bold");doc.setFontSize(9.5);
-    doc.text(gd(qi+1),M+9,y+9,{align:"center"});
-    doc.setTextColor(RGB.ink[0],RGB.ink[1],RGB.ink[2]);doc.setFont("Hind","bold");doc.setFontSize(11);
-    doc.text(qLines,M+26,y+3);
-    y+=Math.max(qLines.length*13,12)+10;
-    opts.forEach(o=>{
-      const c=data.filter(d=>d.answers&&d.answers[key]===o).length;
-      const pct=n?Math.round(c/n*100):0;
-      doc.setFont("Hind","normal");doc.setFontSize(9.3);doc.setTextColor(RGB.mute[0],RGB.mute[1],RGB.mute[2]);
-      doc.text(o,M+26,y+6);
-      const barX=M+150,barW=PW-2*M-150-64,barH=8;
-      doc.setFillColor(RGB.track[0],RGB.track[1],RGB.track[2]);doc.roundedRect(barX,y,barW,barH,3,3,"F");
-      if(pct>0){doc.setFillColor(color[0],color[1],color[2]);doc.roundedRect(barX,y,Math.max(barW*pct/100,4),barH,3,3,"F");}
-      doc.setTextColor(RGB.ink[0],RGB.ink[1],RGB.ink[2]);doc.setFont("Hind","bold");doc.setFontSize(9);
-      doc.text(gd(c)+" ("+gd(pct)+"%)",barX+barW+8,y+6.5);
-      y+=19;
-    });
-    doc.setDrawColor(RGB.line[0],RGB.line[1],RGB.line[2]);doc.setLineWidth(0.6);doc.line(M,y+1,PW-M,y+1);
-    y+=15;
-  });
-
-  if(y+40>PH-64){doc.addPage();y=drawContinuationHeader(doc,PW,M);}
-  doc.setTextColor(RGB.accent[0],RGB.accent[1],RGB.accent[2]);doc.setFont("Hind","bold");doc.setFontSize(13);
-  doc.text("બધા જવાબોની વિગતો",M,y);
-  y+=16;
-
-  doc.autoTable({
-    startY:y,
-    margin:{left:M,right:M,bottom:56},
-    styles:{font:"Hind",fontSize:8.3,cellPadding:5,lineColor:RGB.line,lineWidth:0.5,textColor:RGB.ink,valign:"middle"},
-    headStyles:{fillColor:RGB.accent,textColor:[255,255,255],font:"Hind",fontStyle:"bold",fontSize:8.3},
-    alternateRowStyles:{fillColor:RGB.row},
-    theme:"grid",
-    head:[["ક્રમ","તારીખ અને સમય","વાલીનું નામ","વિદ્યાર્થીનું નામ","ધોરણ","પ્ર.૧","પ્ર.૨","પ્ર.૩","પ્ર.૪","પ્ર.૫"]],
-    body:data.map((d,i)=>{
-      const info=d.info||{};
-      const row=[gd(n-i),fmt(d.at),info.parent||"",info.student||"",info.std||""];
-      Q.forEach(qq=>row.push((d.answers||{})[qq[0]]||""));
-      return row;
-    }),
-  });
-
-  addFooters(doc,PW,PH,M);
 }
 $("pdf").addEventListener("click",async()=>{
   const btn=$("pdf"),old=btn.textContent;
   btn.disabled=true;btn.textContent="તૈયાર થાય છે...";
+  let root=null;
   try{
     await ensurePdfLibs();
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
     const jsPDF=window.jspdf.jsPDF;
     const doc=new jsPDF({unit:"pt",format:"a4"});
-    await ensureFont(doc);
-    buildPdf(doc,data.length);
+    root=buildReportRoot(data.length);
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight(),M=32;
+    const state={y:M,PW,PH,M};
+    const blocks=Array.from(root.querySelectorAll(".pdf-block"));
+    for(const block of blocks){
+      const canvas=await window.html2canvas(block,{scale:2,backgroundColor:"#ffffff",useCORS:true});
+      addCanvasToPdf(doc,canvas,state);
+    }
+    await addFooters(doc,state,root);
     doc.save("school-survey-report.pdf");
   }catch(e){
     showToast("PDF બનાવવામાં ભૂલ આવી. ઇન્ટરનેટ તપાસીને ફરી પ્રયાસ કરો.");
   }finally{
+    if(root)root.remove();
     btn.disabled=false;btn.textContent=old;
   }
 });
